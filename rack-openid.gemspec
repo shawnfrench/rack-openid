@@ -5,6 +5,7 @@ Gem::Specification.new do |s|
 
   s.homepage    = "http://github.com/josh/rack-openid"
   s.summary     = "Provides a more HTTPish API around the ruby-openid library"
+  s.license     = "MIT"
   s.description = <<-EOS
     Provides a more HTTPish API around the ruby-openid library
   EOS
