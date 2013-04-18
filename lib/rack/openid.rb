@@ -6,6 +6,7 @@ require 'openid/consumer'
 require 'openid/extensions/sreg'
 require 'openid/extensions/ax'
 require 'openid/extensions/oauth'
+require 'openid/extensions/pape'
 
 module Rack #:nodoc:
   # A Rack middleware that provides a more HTTPish API around the
@@ -123,6 +124,7 @@ module Rack #:nodoc:
           add_simple_registration_fields(oidreq, params)
           add_attribute_exchange_fields(oidreq, params)
           add_oauth_fields(oidreq, params)
+          add_pape_fields(oidreq, params['preferred_auth_policies'], params['max_auth_age'])
 
           url = open_id_redirect_url(req, oidreq, params)
           return redirect_to(url)
@@ -190,7 +192,8 @@ module Rack #:nodoc:
             scheme == "http" && port != 80
           url << ":#{port}"
         end
-
+        url << "/"
+        
         url
       end
 
@@ -276,6 +279,11 @@ module Rack #:nodoc:
           oauthreq = ::OpenID::OAuth::Request.new(consumer, Array(scope).join(' '))
           oidreq.add_extension(oauthreq)
         end
+      end
+      
+      def add_pape_fields(oidreq, preferred_auth_policies = [], max_auth_age = nil)
+        pape_request = ::OpenID::PAPE::Request.new(preferred_auth_policies || [], max_auth_age)
+        oidreq.add_extension(pape_request)
       end
 
       def default_store
