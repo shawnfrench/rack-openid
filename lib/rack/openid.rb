@@ -282,6 +282,7 @@ module Rack #:nodoc:
       end
       
       def add_pape_fields(oidreq, preferred_auth_policies = [], max_auth_age = nil)
+        preferred_auth_policies = preferred_auth_policies.split.map.to_a if preferred_auth_policies.is_a?(String)
         pape_request = ::OpenID::PAPE::Request.new(preferred_auth_policies || [], max_auth_age)
         oidreq.add_extension(pape_request)
       end
