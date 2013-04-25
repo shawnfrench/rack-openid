@@ -192,8 +192,7 @@ module Rack #:nodoc:
             scheme == "http" && port != 80
           url << ":#{port}"
         end
-        url << "/"
-        
+
         url
       end
 
