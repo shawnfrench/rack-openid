@@ -252,7 +252,10 @@ describe "openid" do
   end
   
   def test_with_pape
-    @app = app(:pape => {:preferred_auth_polices => ['test_policy1', 'test_policy2'], :max_auth_age => 600})
+    @app = app(
+      :'pape[preferred_auth_policies]' => ['test_policy1', 'test_policy2'],
+      :'pape[max_auth_age]' => 600
+    )
     process('/', :method => 'GET')
     
     location = @response.headers['Location']

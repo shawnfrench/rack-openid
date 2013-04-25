@@ -124,7 +124,7 @@ module Rack #:nodoc:
           add_simple_registration_fields(oidreq, params)
           add_attribute_exchange_fields(oidreq, params)
           add_oauth_fields(oidreq, params)
-          add_pape_fields(oidreq, params['preferred_auth_policies'], params['max_auth_age'])
+          add_pape_fields(oidreq, params)
 
           url = open_id_redirect_url(req, oidreq, params)
           return redirect_to(url)
@@ -281,10 +281,14 @@ module Rack #:nodoc:
         end
       end
       
-      def add_pape_fields(oidreq, preferred_auth_policies = [], max_auth_age = nil)
-        preferred_auth_policies = preferred_auth_policies.split.map.to_a if preferred_auth_policies.is_a?(String)
-        pape_request = ::OpenID::PAPE::Request.new(preferred_auth_policies || [], max_auth_age)
-        oidreq.add_extension(pape_request)
+      def add_pape_fields(oidreq, fields)
+        preferred_auth_policies = fields['pape[preferred_auth_policies]']
+        max_auth_age = fields['pape[max_auth_age]']
+        if preferred_auth_policies || max_auth_age
+          preferred_auth_policies = preferred_auth_policies.split if preferred_auth_policies.is_a?(String)
+          pape_request = ::OpenID::PAPE::Request.new(preferred_auth_policies || [], max_auth_age)
+          oidreq.add_extension(pape_request)
+        end
       end
 
       def default_store
