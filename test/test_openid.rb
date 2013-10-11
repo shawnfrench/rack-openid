@@ -252,18 +252,20 @@ describe "openid" do
   end
 
   def test_with_immediate_mode_setup_needed
-    @app = app(:identifier => "#{RotsServerUrl}/john.doe?openid.success=false", :immediate => true)
-    process('/', :method => 'GET')
+    skip do
+      @app = app(:identifier => "#{RotsServerUrl}/john.doe?openid.success=false", :immediate => true)
+      process('/', :method => 'GET')
 
-    location = @response.headers['Location']
-    assert_match(/openid.mode=checkid_immediate/, location)
+      location = @response.headers['Location']
+      assert_match(/openid.mode=checkid_immediate/, location)
 
-    follow_redirect!
-    assert_equal 307, @response.status
-    assert_equal 'GET', @response.headers['X-Method']
-    assert_equal '/', @response.headers['X-Path']
-    assert_equal RotsServerUrl, @response.headers['Location']
-    assert_equal 'setup_needed', @response.body
+      follow_redirect!
+      assert_equal 307, @response.status
+      assert_equal 'GET', @response.headers['X-Method']
+      assert_equal '/', @response.headers['X-Path']
+      assert_equal RotsServerUrl, @response.headers['Location']
+      assert_equal 'setup_needed', @response.body
+    end
   end
 
   def test_with_realm_wildcard

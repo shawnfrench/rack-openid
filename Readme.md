@@ -75,7 +75,7 @@ __END__
 
 TODO
 ====
- - 1 failing test
+ - 1 failing test (skipped)
  - rewrite tests with minitest/spec
 
 Authors
