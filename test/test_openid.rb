@@ -265,6 +265,30 @@ class TestOpenID < Test::Unit::TestCase
     assert_equal 'setup_needed', @response.body
   end
 
+  def test_with_realm_wildcard
+    @app = app(
+      :realm_domain => "*.example.org"
+    )
+    process('/', :method => 'GET')
+
+    location = @response.headers['Location']
+    assert_match(/openid.realm=http%3A%2F%2F%2A.example.org/, location)
+
+    follow_redirect!
+    assert_equal 200, @response.status
+  end
+
+  def test_with_inferred_realm
+    @app = app
+    process('/', :method => 'GET')
+
+    location = @response.headers['Location']
+    assert_match(/openid.realm=http%3A%2F%2Fexample.org/, location)
+
+    follow_redirect!
+    assert_equal 200, @response.status
+  end
+
   def test_with_missing_id
     @app = app(:identifier => "#{RotsServerUrl}/john.doe")
     process('/', :method => 'GET')

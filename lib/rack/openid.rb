@@ -117,14 +117,14 @@ module Rack #:nodoc:
 
         consumer   = ::OpenID::Consumer.new(session, @store)
         identifier = params['identifier'] || params['identity']
-        immediate  = params['immediate'] == 'true'
 
         begin
           oidreq = consumer.begin(identifier)
           add_simple_registration_fields(oidreq, params)
           add_attribute_exchange_fields(oidreq, params)
           add_oauth_fields(oidreq, params)
-          url = open_id_redirect_url(req, oidreq, params["trust_root"], params["return_to"], params["method"], immediate)
+
+          url = open_id_redirect_url(req, oidreq, params)
           return redirect_to(url)
         rescue ::OpenID::OpenIDError, Timeout::Error => e
           env[RESPONSE] = MissingResponse.new
@@ -181,9 +181,9 @@ module Rack #:nodoc:
         env["REQUEST_URI"] = request_uri
       end
 
-      def realm_url(req)
+      def scheme_with_host_and_port(req, host = nil)
         url = req.scheme + "://"
-        url << req.host
+        url << (host || req.host)
 
         scheme, port = req.scheme, req.port
         if scheme == "https" && port != 443 ||
@@ -194,8 +194,17 @@ module Rack #:nodoc:
         url
       end
 
+      def realm(req, domain = nil)
+        if domain
+          scheme_with_host_and_port(req, domain)
+        else
+          scheme_with_host_and_port(req)
+        end
+
+      end
+
       def request_url(req)
-        url = realm_url(req)
+        url = scheme_with_host_and_port(req)
         url << req.script_name
         url << req.path_info
         url << "?#{req.query_string}" if req.query_string.to_s.length > 0
@@ -206,7 +215,13 @@ module Rack #:nodoc:
         [303, {"Content-Type" => "text/html", "Location" => url}, []]
       end
 
-      def open_id_redirect_url(req, oidreq, trust_root, return_to, method, immediate)
+      def open_id_redirect_url(req, oidreq, options)
+        trust_root = options["trust_root"]
+        return_to  = options["return_to"]
+        method     = options["method"]
+        immediate  = options["immediate"] == "true"
+
+        realm       = realm(req, options["realm_domain"])
         request_url = request_url(req)
 
         if return_to
@@ -218,7 +233,7 @@ module Rack #:nodoc:
 
         method = method.to_s.downcase
         oidreq.return_to_args['_method'] = method unless method == "get"
-        oidreq.redirect_url(trust_root || realm_url(req), return_to || request_url, immediate)
+        oidreq.redirect_url(trust_root || realm, return_to || request_url, immediate)
       end
 
       def add_simple_registration_fields(oidreq, fields)
