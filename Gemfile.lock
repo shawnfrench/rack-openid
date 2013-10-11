@@ -15,6 +15,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     bump (0.4.3)
+    minitest (5.0.8)
     rack (1.5.2)
     rake (10.1.0)
     ruby-openid (2.3.0)
@@ -24,6 +25,7 @@ PLATFORMS
 
 DEPENDENCIES
   bump
+  minitest
   rack-openid!
   rake
   rots!

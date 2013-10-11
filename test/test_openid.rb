@@ -1,4 +1,5 @@
-require 'test/unit'
+require 'minitest/autorun'
+require 'minitest/spec'
 require 'net/http'
 
 require 'rack'
@@ -62,8 +63,7 @@ end
 
 OpenID.fetcher = MockFetcher.new(RotsApp)
 
-
-class TestHeader < Test::Unit::TestCase
+describe "headers" do
   def test_build_header
     assert_equal 'OpenID identity="http://example.com/"',
       Rack::OpenID.build_header(:identity => "http://example.com/")
@@ -99,24 +99,25 @@ end
 
 module RackTestHelpers
   private
-    def process(*args)
-      env = Rack::MockRequest.env_for(*args)
-      @response = Rack::MockResponse.new(*@app.call(env))
-    end
 
-    def follow_redirect!
-      assert @response
-      assert_equal 303, @response.status
+  def process(*args)
+    env = Rack::MockRequest.env_for(*args)
+    @response = Rack::MockResponse.new(*@app.call(env))
+  end
 
-      env = Rack::MockRequest.env_for(@response.headers['Location'])
-      status, headers, body = RotsApp.call(env)
+  def follow_redirect!
+    assert @response
+    assert_equal 303, @response.status
 
-      uri = URI(headers['Location'])
-      process("#{uri.path}?#{uri.query}")
-    end
+    env = Rack::MockRequest.env_for(@response.headers['Location'])
+    status, headers, body = RotsApp.call(env)
+
+    uri = URI(headers['Location'])
+    process("#{uri.path}?#{uri.query}")
+  end
 end
 
-class TestOpenID < Test::Unit::TestCase
+describe "openid" do
   include RackTestHelpers
 
   def test_with_get
@@ -324,35 +325,36 @@ class TestOpenID < Test::Unit::TestCase
   end
 
   private
-    def app(options = {})
-      options[:identifier] ||= "#{RotsServerUrl}/john.doe?openid.success=true"
 
-      app = lambda { |env|
-        if resp = env[Rack::OpenID::RESPONSE]
-          headers = {
-            'X-Path' => env['PATH_INFO'],
-            'X-Method' => env['REQUEST_METHOD'],
-            'X-Query-String' => env['QUERY_STRING']
-          }
-          if resp.status == :success
-            [200, headers, [resp.status.to_s]]
-          elsif resp.status == :setup_needed
-            headers['Location'] = RotsServerUrl #TODO update Rots to properly send user_setup_url. This should come from resp.
-            [307, headers, [resp.status.to_s]]
-          else
-            [400, headers, [resp.status.to_s]]
-          end
-        elsif env["MOCK_HTTP_BASIC_AUTH"]
-          [401, {Rack::OpenID::AUTHENTICATE_HEADER => 'Realm="Example"'}, []]
+  def app(options = {})
+    options[:identifier] ||= "#{RotsServerUrl}/john.doe?openid.success=true"
+
+    app = lambda { |env|
+      if resp = env[Rack::OpenID::RESPONSE]
+        headers = {
+          'X-Path' => env['PATH_INFO'],
+          'X-Method' => env['REQUEST_METHOD'],
+          'X-Query-String' => env['QUERY_STRING']
+        }
+        if resp.status == :success
+          [200, headers, [resp.status.to_s]]
+        elsif resp.status == :setup_needed
+          headers['Location'] = RotsServerUrl #TODO update Rots to properly send user_setup_url. This should come from resp.
+          [307, headers, [resp.status.to_s]]
         else
-          [401, {Rack::OpenID::AUTHENTICATE_HEADER => Rack::OpenID.build_header(options)}, []]
+          [400, headers, [resp.status.to_s]]
         end
-      }
-      Rack::Session::Pool.new(Rack::OpenID.new(app))
-    end
+      elsif env["MOCK_HTTP_BASIC_AUTH"]
+        [401, {Rack::OpenID::AUTHENTICATE_HEADER => 'Realm="Example"'}, []]
+      else
+        [401, {Rack::OpenID::AUTHENTICATE_HEADER => Rack::OpenID.build_header(options)}, []]
+      end
+    }
+    Rack::Session::Pool.new(Rack::OpenID.new(app))
+  end
 end
 
-class TestSimpleAuth < Test::Unit::TestCase
+describe "simple auth" do
   include RackTestHelpers
 
   def test_successful_login
@@ -379,9 +381,10 @@ class TestSimpleAuth < Test::Unit::TestCase
   end
 
   private
-    def app(identifier)
-      app = lambda { |env| [200, {'Content-Type' => 'text/html'}, ['Hello']] }
-      app = Rack::OpenID::SimpleAuth.new(app, identifier)
-      Rack::Session::Pool.new(app)
-    end
+
+  def app(identifier)
+    app = lambda { |env| [200, {'Content-Type' => 'text/html'}, ['Hello']] }
+    app = Rack::OpenID::SimpleAuth.new(app, identifier)
+    Rack::Session::Pool.new(app)
+  end
 end
