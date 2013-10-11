@@ -3,6 +3,4 @@ require 'bundler/gem_tasks'
 require 'bump/tasks'
 require 'rake/testtask'
 
-Rake::TestTask.new(:default) do |t|
-  t.warning = true
-end
+Rake::TestTask.new(:default)

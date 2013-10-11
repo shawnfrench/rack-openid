@@ -110,7 +110,7 @@ module RackTestHelpers
     assert_equal 303, @response.status
 
     env = Rack::MockRequest.env_for(@response.headers['Location'])
-    status, headers, body = RotsApp.call(env)
+    _status, headers, _body = RotsApp.call(env)
 
     uri = URI(headers['Location'])
     process("#{uri.path}?#{uri.query}")
@@ -179,9 +179,9 @@ describe "openid" do
 
     assert_equal 303, @response.status
     env = Rack::MockRequest.env_for(@response.headers['Location'])
-    status, headers, body = RotsApp.call(env)
+    _status, headers, _body = RotsApp.call(env)
 
-    uri, input = headers['Location'].split('?', 2)
+    _uri, input = headers['Location'].split('?', 2)
     process("http://example.org/complete?user[remember_me]=true", :method => 'POST', :input => input)
 
     assert_equal 200, @response.status
