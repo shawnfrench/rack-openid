@@ -250,6 +250,24 @@ describe "openid" do
     assert_equal '/', @response.headers['X-Path']
     assert_equal 'success', @response.body
   end
+  
+  def test_with_pape
+    @app = app(
+      :'pape[preferred_auth_policies]' => ['test_policy1', 'test_policy2'],
+      :'pape[max_auth_age]' => 600
+    )
+    process('/', :method => 'GET')
+    
+    location = @response.headers['Location']
+    assert_match(/pape\.preferred_auth_policies=test_policy1\+test_policy2/, location)
+    assert_match(/pape\.max_auth_age=600/, location)
+    
+    follow_redirect!
+    assert_equal 200, @response.status
+    assert_equal 'GET', @response.headers['X-Method']
+    assert_equal '/', @response.headers['X-Path']
+    assert_equal 'success', @response.body
+  end
 
   def test_with_immediate_mode_setup_needed
     skip do
