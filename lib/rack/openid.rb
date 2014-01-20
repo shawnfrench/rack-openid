@@ -92,6 +92,14 @@ module Rack #:nodoc:
     # returns a <tt>[status, header, body]</tt> response.
     def call(env)
       req = Rack::Request.new(env)
+
+      # Stop the base64 encoded nonce and sig from having its +'s
+      # transformed into spaces by Rack::Request.
+      #
+      # See https://github.com/openid/ruby-openid/pull/54
+      #
+      Rack::OpenID.sanitize_request!(req)
+
       if req.params["openid.mode"]
         complete_authentication(env)
       end
@@ -103,6 +111,12 @@ module Rack #:nodoc:
         begin_authentication(env, qs)
       else
         [status, headers, body]
+      end
+    end
+
+    def self.sanitize_request!(request)
+      ['openid.sig', 'openid.response_nonce'].each do |param|
+        (request.params[param] || '').gsub!(' ', '+')
       end
     end
 
