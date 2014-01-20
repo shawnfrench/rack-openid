@@ -86,6 +86,7 @@ Authors
 ### [Contributors](https://github.com/grosser/rack-openid/contributors)
  - [Kenny Buckler](https://github.com/kbuckler)
  - [Mike Dillon](https://github.com/md5)
+ - [Richard Wilson](https://github.com/Senjai)
 
 [Michael Grosser](http://grosser.it)<br/>
 michael@grosser.it<br/>
