@@ -1,7 +1,7 @@
 require 'rack/openid'
 require 'rack/request'
 
-module Rack #:nodoc:
+module Rack
   class OpenID
     # A simple OpenID middleware that restricts access to
     # a single identifier.
@@ -9,7 +9,7 @@ module Rack #:nodoc:
     #   use Rack::OpenID::SimpleAuth, "http://example.org"
     #
     # SimpleAuth will automatically insert the required Rack::OpenID
-    # middleware, so <tt>use Rack::OpenID</tt> is unnecessary.
+    # middleware, so use Rack::OpenID is unnecessary.
     class SimpleAuth
       def self.new(*args)
         Rack::OpenID.new(super)
@@ -71,8 +71,8 @@ module Rack #:nodoc:
       end
 
       def www_authenticate_header
-          OpenID.build_header(:identifier => identifier)
-        end
+        OpenID.build_header(:identifier => identifier)
+      end
     end
   end
 end

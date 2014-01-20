@@ -8,7 +8,7 @@ require 'openid/extensions/ax'
 require 'openid/extensions/oauth'
 require 'openid/extensions/pape'
 
-module Rack #:nodoc:
+module Rack
   # A Rack middleware that provides a more HTTPish API around the
   # ruby-openid library.
   #
@@ -17,7 +17,7 @@ module Rack #:nodoc:
   # header with the identifier you would like to validate.
   #
   # On competition, the OpenID response is automatically verified and
-  # assigned to <tt>env["rack.openid.response"]</tt>.
+  # assigned to env["rack.openid.response"].
   class OpenID
     # Helper method for building the "WWW-Authenticate" header value.
     #
@@ -53,17 +53,15 @@ module Rack #:nodoc:
       params
     end
 
-    class TimeoutResponse #:nodoc:
+    class TimeoutResponse
       include ::OpenID::Consumer::Response
       STATUS = :failure
     end
 
-    class MissingResponse #:nodoc:
+    class MissingResponse
       include ::OpenID::Consumer::Response
       STATUS = :missing
     end
-
-    # :stopdoc:
 
     HTTP_METHODS = %w(GET HEAD PUT POST DELETE OPTIONS)
 
@@ -72,8 +70,6 @@ module Rack #:nodoc:
     AUTHENTICATE_REGEXP = /^OpenID/
 
     URL_FIELD_SELECTOR = lambda { |field| field.to_s =~ %r{^https?://} }
-
-    # :startdoc:
 
     # Initialize middleware with application and optional OpenID::Store.
     # If no store is given, OpenID::Store::Memory is used.
@@ -89,7 +85,7 @@ module Rack #:nodoc:
     end
 
     # Standard Rack +call+ dispatch that accepts an +env+ and
-    # returns a <tt>[status, header, body]</tt> response.
+    # returns a [status, header, body] response.
     def call(env)
       req = Rack::Request.new(env)
 
@@ -283,8 +279,7 @@ module Rack #:nodoc:
     end
 
     def add_oauth_fields(oidreq, fields)
-      if (consumer = fields['oauth[consumer]']) &&
-            (scope = fields['oauth[scope]'])
+      if (consumer = fields['oauth[consumer]']) && (scope = fields['oauth[scope]'])
         oauthreq = ::OpenID::OAuth::Request.new(consumer, Array(scope).join(' '))
         oidreq.add_extension(oauthreq)
       end
@@ -306,9 +301,9 @@ module Rack #:nodoc:
     end
 
     def timeout_protection_from_identity_server
-        yield
-      rescue Timeout::Error
-        TimeoutResponse.new
-      end
+      yield
+    rescue Timeout::Error
+      TimeoutResponse.new
+    end
   end
 end
