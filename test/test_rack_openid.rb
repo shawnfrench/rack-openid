@@ -1,15 +1,19 @@
 require File.expand_path("../helper", __FILE__)
 
 describe Rack::OpenID do
-  describe ".sanitize_request" do
-    # https://github.com/grosser/rack-openid/pull/4
-    it "fixes sig and nonce encoding issues" do
+  describe ".sanitize_params!" do
+    def call(*args)
+      Rack::OpenID.new(nil, nil).send(:sanitize_params!, *args)
+    end
+
+    # https://github.com/openid/ruby-openid/pull/54
+    it "stops the base64 encoded nonce and sig from having its +'s transformed into spaces by Rack::Request" do
       params = {
         "openid.sig" => "a string with spaces",
         "openid.response_nonce" => "again with spaces!",
       }
 
-      Rack::OpenID.sanitize_params!(params)
+      call(params)
 
       params["openid.sig"].must_equal "a+string+with+spaces"
       params["openid.response_nonce"].must_equal "again+with+spaces!"
