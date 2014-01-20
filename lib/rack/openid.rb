@@ -98,9 +98,7 @@ module Rack #:nodoc:
       #
       # See https://github.com/openid/ruby-openid/pull/54
       #
-      ['openid.sig', 'openid.request_nonce'].each do |param|
-        (req.params[param] || '').gsub!(' ', '+')
-      end
+      Rack::OpenID.sanitize_request!(req)
 
       if req.params["openid.mode"]
         complete_authentication(env)
@@ -113,6 +111,12 @@ module Rack #:nodoc:
         begin_authentication(env, qs)
       else
         [status, headers, body]
+      end
+    end
+
+    def self.sanitize_request!(request)
+      ['openid.sig', 'openid.response_nonce'].each do |param|
+        (request.params[param] || '').gsub!(' ', '+')
       end
     end
 
