@@ -34,42 +34,43 @@ module Rack #:nodoc:
       end
 
       private
-        def session(env)
-          env['rack.session'] || raise_session_error
-        end
 
-        def raise_session_error
-          raise RuntimeError, 'Rack::OpenID::SimpleAuth requires a session'
-        end
+      def session(env)
+        env['rack.session'] || raise_session_error
+      end
 
-        def session_authenticated?(env)
-          session(env)['authenticated'] == true
-        end
+      def raise_session_error
+        raise RuntimeError, 'Rack::OpenID::SimpleAuth requires a session'
+      end
 
-        def authenticate_session(env)
-          session(env)['authenticated'] = true
-        end
+      def session_authenticated?(env)
+        session(env)['authenticated'] == true
+      end
 
-        def successful_response?(env)
-          if resp = env[OpenID::RESPONSE]
-            resp.status == :success && resp.display_identifier == identifier
-          end
-        end
+      def authenticate_session(env)
+        session(env)['authenticated'] = true
+      end
 
-        def requested_url(env)
-          req = Rack::Request.new(env)
-          req.url
+      def successful_response?(env)
+        if resp = env[OpenID::RESPONSE]
+          resp.status == :success && resp.display_identifier == identifier
         end
+      end
 
-        def redirect_to(url)
-          [303, {'Content-Type' => 'text/html', 'Location' => url}, []]
-        end
+      def requested_url(env)
+        req = Rack::Request.new(env)
+        req.url
+      end
 
-        def authentication_request
-          [401, { OpenID::AUTHENTICATE_HEADER => www_authenticate_header }, []]
-        end
+      def redirect_to(url)
+        [303, {'Content-Type' => 'text/html', 'Location' => url}, []]
+      end
 
-        def www_authenticate_header
+      def authentication_request
+        [401, { OpenID::AUTHENTICATE_HEADER => www_authenticate_header }, []]
+      end
+
+      def www_authenticate_header
           OpenID.build_header(:identifier => identifier)
         end
     end
