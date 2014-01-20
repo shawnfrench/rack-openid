@@ -1,26 +1,18 @@
-require 'minitest/autorun'
-require 'minitest/spec'
-require 'net/http'
+require File.expand_path("../helper", __FILE__)
 
-require 'rack'
-require 'rack/openid'
-require 'rack/openid/simple_auth'
-
-class TestOpenID < MiniTest::Unit::TestCase
-  class MockRequest
-    def params
-      @params ||= {
+describe Rack::OpenID do
+  describe ".sanitize_request" do
+    # https://github.com/grosser/rack-openid/pull/4
+    it "fixes sig and nonce encoding issues" do
+      params = {
         "openid.sig" => "a string with spaces",
         "openid.response_nonce" => "again with spaces!",
       }
+
+      Rack::OpenID.sanitize_params!(params)
+
+      params["openid.sig"].must_equal "a+string+with+spaces"
+      params["openid.response_nonce"].must_equal "again+with+spaces!"
     end
-  end
-
-  def test_sanitize_request
-    mock_req = MockRequest.new
-    Rack::OpenID.sanitize_request!(mock_req)
-
-    assert_equal "a+string+with+spaces", mock_req.params["openid.sig"]
-    assert_equal "again+with+spaces!", mock_req.params["openid.response_nonce"]
   end
 end

@@ -98,7 +98,7 @@ module Rack #:nodoc:
       #
       # See https://github.com/openid/ruby-openid/pull/54
       #
-      Rack::OpenID.sanitize_request!(req)
+      Rack::OpenID.sanitize_params!(req.params)
 
       if req.params["openid.mode"]
         complete_authentication(env)
@@ -114,9 +114,9 @@ module Rack #:nodoc:
       end
     end
 
-    def self.sanitize_request!(request)
+    def self.sanitize_params!(params)
       ['openid.sig', 'openid.response_nonce'].each do |param|
-        (request.params[param] || '').gsub!(' ', '+')
+        (params[param] || '').gsub!(' ', '+')
       end
     end
 
@@ -293,7 +293,7 @@ module Rack #:nodoc:
           oidreq.add_extension(oauthreq)
         end
       end
-      
+
       def add_pape_fields(oidreq, fields)
         preferred_auth_policies = fields['pape[preferred_auth_policies]']
         max_auth_age = fields['pape[max_auth_age]']
