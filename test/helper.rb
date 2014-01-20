@@ -1,10 +1,9 @@
 require 'bundler/setup'
 require 'minitest/autorun'
-require 'minitest/spec'
+require 'minitest/rg'
 require 'net/http'
 
 require 'rack'
-require 'ostruct'
 require 'rack/openid'
 require 'rack/openid/simple_auth'
 
