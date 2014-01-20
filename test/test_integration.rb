@@ -54,40 +54,6 @@ describe "integration" do
 
   OpenID.fetcher = MockFetcher.new(RotsApp)
 
-  describe "headers" do
-    def test_build_header
-      assert_equal 'OpenID identity="http://example.com/"',
-        Rack::OpenID.build_header(:identity => "http://example.com/")
-      assert_equal 'OpenID identity="http://example.com/?foo=bar"',
-        Rack::OpenID.build_header(:identity => "http://example.com/?foo=bar")
-
-      header = Rack::OpenID.build_header(:identity => "http://example.com/", :return_to => "http://example.org/")
-      assert_match(/OpenID /, header)
-      assert_match(/identity="http:\/\/example\.com\/"/, header)
-      assert_match(/return_to="http:\/\/example\.org\/"/, header)
-
-      header = Rack::OpenID.build_header(:identity => "http://example.com/", :required => ["nickname", "email"])
-      assert_match(/OpenID /, header)
-      assert_match(/identity="http:\/\/example\.com\/"/, header)
-      assert_match(/required="nickname,email"/, header)
-    end
-
-    def test_parse_header
-      assert_equal({"identity" => "http://example.com/"},
-        Rack::OpenID.parse_header('OpenID identity="http://example.com/"'))
-      assert_equal({"identity" => "http://example.com/?foo=bar"},
-        Rack::OpenID.parse_header('OpenID identity="http://example.com/?foo=bar"'))
-      assert_equal({"identity" => "http://example.com/", "return_to" => "http://example.org/"},
-        Rack::OpenID.parse_header('OpenID identity="http://example.com/", return_to="http://example.org/"'))
-      assert_equal({"identity" => "http://example.com/", "required" => ["nickname", "email"]},
-        Rack::OpenID.parse_header('OpenID identity="http://example.com/", required="nickname,email"'))
-
-      # ensure we don't break standard HTTP basic auth
-      assert_equal({},
-        Rack::OpenID.parse_header('Realm="Example"'))
-    end
-  end
-
   module RackTestHelpers
     private
 
@@ -108,10 +74,44 @@ describe "integration" do
     end
   end
 
+  describe "headers" do
+    it "builds header" do
+      assert_equal 'OpenID identity="http://example.com/"',
+        Rack::OpenID.build_header(:identity => "http://example.com/")
+      assert_equal 'OpenID identity="http://example.com/?foo=bar"',
+        Rack::OpenID.build_header(:identity => "http://example.com/?foo=bar")
+
+      header = Rack::OpenID.build_header(:identity => "http://example.com/", :return_to => "http://example.org/")
+      assert_match(/OpenID /, header)
+      assert_match(/identity="http:\/\/example\.com\/"/, header)
+      assert_match(/return_to="http:\/\/example\.org\/"/, header)
+
+      header = Rack::OpenID.build_header(:identity => "http://example.com/", :required => ["nickname", "email"])
+      assert_match(/OpenID /, header)
+      assert_match(/identity="http:\/\/example\.com\/"/, header)
+      assert_match(/required="nickname,email"/, header)
+    end
+
+    it "parses header" do
+      assert_equal({"identity" => "http://example.com/"},
+        Rack::OpenID.parse_header('OpenID identity="http://example.com/"'))
+      assert_equal({"identity" => "http://example.com/?foo=bar"},
+        Rack::OpenID.parse_header('OpenID identity="http://example.com/?foo=bar"'))
+      assert_equal({"identity" => "http://example.com/", "return_to" => "http://example.org/"},
+        Rack::OpenID.parse_header('OpenID identity="http://example.com/", return_to="http://example.org/"'))
+      assert_equal({"identity" => "http://example.com/", "required" => ["nickname", "email"]},
+        Rack::OpenID.parse_header('OpenID identity="http://example.com/", required="nickname,email"'))
+
+      # ensure we don't break standard HTTP basic auth
+      assert_equal({},
+        Rack::OpenID.parse_header('Realm="Example"'))
+    end
+  end
+
   describe "openid" do
     include RackTestHelpers
 
-    def test_with_get
+    it "with_get" do
       @app = app
       process('/', :method => 'GET')
       follow_redirect!
@@ -121,7 +121,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_deprecated_identity
+    it "with_deprecated_identity" do
       @app = app
       process('/', :method => 'GET', :identity => "#{RotsServerUrl}/john.doe?openid.success=true")
       follow_redirect!
@@ -131,7 +131,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_post_method
+    it "with_post_method" do
       @app = app
       process('/', :method => 'POST')
       follow_redirect!
@@ -141,7 +141,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_custom_return_to
+    it "with_custom_return_to" do
       @app = app(:return_to => 'http://example.org/complete')
       process('/', :method => 'GET')
       follow_redirect!
@@ -151,7 +151,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_get_nested_params_custom_return_to
+    it "with_get_nested_params_custom_return_to" do
       url = 'http://example.org/complete?user[remember_me]=true'
       @app = app(:return_to => url)
       process('/', :method => 'GET')
@@ -163,7 +163,7 @@ describe "integration" do
       assert_match(/remember_me/, @response.headers['X-Query-String'])
     end
 
-    def test_with_post_nested_params_custom_return_to
+    it "with_post_nested_params_custom_return_to" do
       url = 'http://example.org/complete?user[remember_me]=true'
       @app = app(:return_to => url)
       process('/', :method => 'POST')
@@ -182,7 +182,7 @@ describe "integration" do
       assert_match(/remember_me/, @response.headers['X-Query-String'])
     end
 
-    def test_with_post_method_custom_return_to
+    it "with_post_method_custom_return_to" do
       @app = app(:return_to => 'http://example.org/complete')
       process('/', :method => 'POST')
       follow_redirect!
@@ -192,7 +192,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_custom_return_method
+    it "with_custom_return_method" do
       @app = app(:method => 'put')
       process('/', :method => 'GET')
       follow_redirect!
@@ -202,7 +202,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_simple_registration_fields
+    it "with_simple_registration_fields" do
       @app = app(:required => ['nickname', 'email'], :optional => 'fullname')
       process('/', :method => 'GET')
       follow_redirect!
@@ -212,7 +212,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_attribute_exchange
+    it "with_attribute_exchange" do
       @app = app(
         :required => ['http://axschema.org/namePerson/friendly', 'http://axschema.org/contact/email'],
         :optional => 'http://axschema.org/namePerson')
@@ -224,7 +224,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_oauth
+    it "with_oauth" do
       @app = app(
         :'oauth[consumer]' => 'www.example.com',
         :'oauth[scope]' => ['http://docs.google.com/feeds/', 'http://spreadsheets.google.com/feeds/']
@@ -242,7 +242,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_pape
+    it "with_pape" do
       @app = app(
         :'pape[preferred_auth_policies]' => ['test_policy1', 'test_policy2'],
         :'pape[max_auth_age]' => 600
@@ -260,7 +260,7 @@ describe "integration" do
       assert_equal 'success', @response.body
     end
 
-    def test_with_immediate_mode_setup_needed
+    it "with_immediate_mode_setup_needed" do
       skip do
         @app = app(:identifier => "#{RotsServerUrl}/john.doe?openid.success=false", :immediate => true)
         process('/', :method => 'GET')
@@ -277,7 +277,7 @@ describe "integration" do
       end
     end
 
-    def test_with_realm_wildcard
+    it "with_realm_wildcard" do
       @app = app(
         :realm_domain => "*.example.org"
       )
@@ -290,7 +290,7 @@ describe "integration" do
       assert_equal 200, @response.status
     end
 
-    def test_with_inferred_realm
+    it "with_inferred_realm" do
       @app = app
       process('/', :method => 'GET')
 
@@ -301,7 +301,7 @@ describe "integration" do
       assert_equal 200, @response.status
     end
 
-    def test_with_missing_id
+    it "with_missing_id" do
       @app = app(:identifier => "#{RotsServerUrl}/john.doe")
       process('/', :method => 'GET')
       follow_redirect!
@@ -311,7 +311,7 @@ describe "integration" do
       assert_equal 'cancel', @response.body
     end
 
-    def test_with_timeout
+    it "with_timeout" do
       @app = app(:identifier => RotsServerUrl)
       process('/', :method => "GET")
       assert_equal 400, @response.status
@@ -320,7 +320,7 @@ describe "integration" do
       assert_equal 'missing', @response.body
     end
 
-    def test_sanitize_query_string
+    it "sanitize_query_string" do
       @app = app
       process('/', :method => 'GET')
       follow_redirect!
@@ -329,7 +329,7 @@ describe "integration" do
       assert_equal '', @response.headers['X-Query-String']
     end
 
-    def test_passthrough_standard_http_basic_auth
+    it "passthrough_standard_http_basic_auth" do
       @app = app
       process('/', :method => 'GET', "MOCK_HTTP_BASIC_AUTH" => '1')
       assert_equal 401, @response.status
@@ -368,7 +368,7 @@ describe "integration" do
   describe "simple auth" do
     include RackTestHelpers
 
-    def test_successful_login
+    it "can login" do
       @app = app "#{RotsServerUrl}/john.doe?openid.success=true"
 
       process '/dashboard'
@@ -383,7 +383,7 @@ describe "integration" do
       assert_equal 'Hello', @response.body
     end
 
-    def test_failed_login
+    it "fails login" do
       @app = app "#{RotsServerUrl}/john.doe"
 
       process '/dashboard'
