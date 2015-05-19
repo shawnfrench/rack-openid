@@ -61,6 +61,8 @@ module Rack
     class MissingResponse
       include ::OpenID::Consumer::Response
       STATUS = :missing
+
+      attr_accessor :error
     end
 
     HTTP_METHODS = %w(GET HEAD PUT POST DELETE OPTIONS)
@@ -135,7 +137,9 @@ module Rack
         url = open_id_redirect_url(req, oidreq, params)
         return redirect_to(url)
       rescue ::OpenID::OpenIDError, Timeout::Error => e
-        env[RESPONSE] = MissingResponse.new
+        response = MissingResponse.new
+        response.error = e
+        env[RESPONSE] = response
         return @app.call(env)
       end
     end
